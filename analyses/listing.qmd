@@ -1,0 +1,17 @@
+---
+title: "Analyses of Data Kits"
+date: 30/Sept/2025
+listing: 
+  type: table
+  sort: "order"
+  sort-ui: false
+  filter-ui: false
+  contents: 
+    - Modules/*/*.qmd
+  fields: [image, title, date]
+  table-striped: true
+  table-hover: true
+  categories: true
+---
+
+

@@ -1,0 +1,432 @@
+---
+title: "Group 7 — ERCP trial and the Americas"
+subtitle: "Studio wall"
+author: "Gandalf the Grey (Arvind) and 20 Peasants"
+format:
+  html:
+    toc: true
+    toc-depth: 2
+code-tools: true
+---
+
+# Spine
+
+> Does a simple pill change post-procedure pancreatitis, who is in that trial, and where in the Americas is life long?
+
+~~This sentence stays at the top. Every panel must attach to it.~~
+
+# Introduction — the tables we own
+
+This folder is ours for the ten days. Three tables, three shapes.
+
+- **Panel A** (`panel-A.csv`) — `medicaldata::indo_rct`: age and risk score, plus gender, treatment (`rx`: indomethacin vs placebo), and outcome.
+- **Panel B** (`panel-B.csv`) — same trial, Quals: treatment, outcome, PEP, outpatient status, site.
+- **Panel C** (`panel-C.csv`) — gapminder 2007, **Americas only**. Join by country name.
+
+This is an RCT. `rx` is assigned, not a lifestyle. Do not talk about it as if people chose the pill.
+
+```{r}
+#| label: setup
+#| message: false # keeps rendered Quarto less noisy
+#| 
+library(tidyverse)
+library(mosaic)
+library(skimr)
+library(ggformula)
+##
+library(vcd) # (NEW!!) for Panel B
+library(broom) # (NEW!!) for clean stat outputs
+
+
+A <- read_csv("../../../data/group-7-ercp-and-americas/panel-A.csv")
+B <- read_csv("../../../data/group-7-ercp-and-americas/panel-B.csv")
+C <- read_csv("../../../data/group-7-ercp-and-americas/panel-C.csv")
+```
+
+~~Found tables train the mark. A campus Free Hunch is a **made** panel of the same pair type.~~
+
+# Panel A — body / measure
+
+> *age and risk are Quant. gender, rx, outcome are Quals for split.*
+
+
+### 1. See the table
+
+~~What is a case? Which columns are Quant / Qual? What is missing?~~
+
+```{r}
+#| label: inspect-panel-A-data-1
+#| 
+# glimpse() / inspect() / skim()
+dplyr::glimpse(A)
+```
+My Panel-A data has:
+
+  - 602 observations and 5 variables.
+  - `age`: Quantitative, numeric
+  - `risk`: Quantitative, numeric
+  - `gender`: Qualitative, categorical. Encoded <chr>, to be mutated
+  - `rx`: Qualitative, categorical. Encoded <chr>, to be mutated
+  - `outcome`: Qualitative, categorical. Encoded <chr>, to be mutated
+
+```{r}
+#| label: inspect-panel-A-data-2
+#| 
+# glimpse() / inspect() / skim()
+skimr::skim(A)
+```
+
+
+Furthermore, on the Qual variables panel-A data has : 
+
+- `gender` has 2 levels: "male" and "female"
+- `rx` has 2 levels: "indomethacin" and "placebo"
+- `outcome` has 2 levels: "no" and "yes"
+
+And on the Quant variables panel-A data has :
+
+- `age` has a mean of 45.26, sd of 13.2, median of 45, min of 19, and max of 90
+- `risk` has a mean of 2.38, sd of 0.88, median of 2.5, min of 1, and max of 5.5
+
+There is no missing data. `age` histogram shown in `skim()` output seems skewed to the right; `risk` is slightly skewed right / normal. 
+
+```{r}
+#| label: mutate-A-factors
+
+A_mod <- A |> 
+  mutate(
+    gender = as.factor(gender),
+    rx = as.factor(rx),
+    outcome = as.factor(outcome)
+  )
+
+glimpse(A_mod)
+
+```
+All ready now. 
+
+
+### 2. Ask
+
+~~One question *this* table can answer. One it cannot. Write both.~~
+Looking at the overall Spine statement, I can pose the following Questions:
+
+Possibly can answer: 
+
+1. Are the dataset balanced by `gender` and by `rx` (assigned medication)?
+1. What are the distributions for each of the Quant variables, `age`, and `risk`?
+1. How are they different based on the Qual variables? (e.g., is there a difference in age distribution between `gender`-s, or between `rx` groups?)
+1. Is the `risk` different for men and women? (`Main Character` Question)
+
+Possibly cannot answer:
+
+1. Does the medication efficacy depend upon dosage? ( No `dosage` variable.)
+1. Better than some other medicine? ( No data, need an entire new table)
+
+
+### 3. Choose a mark
+
+~~Geom, map mark, or (later) test that matches the pair type. Name it before you code.~~
+
+1. A bar chart
+2. Histograms
+3. Histograms, coloured by `gender` and `rx`
+4. Histogram?? AND Stat Test For Means?? (NEW!!)
+
+### 4. Predict
+
+~~What do we think we will see? One sentence, before Run.~~
+
+I think we will see that there is a difference in `risk` between men and women. 
+
+And a Stat test for means will confirm this.
+
+### 5. Make
+
+~~Human brick first. Optional: one AI prompt, pasted below, only for what section 3 named.~~
+
+These first few charts are what I want to check out. I may/will not have these charts in the final rendered Quarto, but want to comment on findings if needed. 
+
+If any chart is surprising, it stays. 
+
+```{r}
+#| label: panelA-charts-I-want-to-see-but-not-show-1
+#| eval: false
+#| echo: true # Include the code, but don't compute in render
+
+## Question 1
+A_mod |> gf_bar(~ gender)
+
+## Question 2
+A_mod |> gf_bar(~ rx)
+
+```
+
+```{r}
+#| label: panelA-charts-I-want-to-see-but-not-show-2
+#| eval: false
+#| echo: true # Include the code, but don't compute in render
+
+## Question 3
+A_mod |> gf_histogram(~ age)
+A_mod |> gf_histogram(~ age, fill = ~ gender)
+A |> gf_histogram(~ age, fill = ~ rx)
+##
+A_mod |> gf_histogram(~ risk)
+
+```
+
+```{r}
+#| label: panel-A-Main-Character-question
+## Question #4 (Main Character)
+
+A_mod |> gf_histogram(~ risk, fill = ~ gender)
+A_mod |> gf_density(~ risk, fill = ~ gender)
+
+```
+
+There are more `women` than `men` in the sample. 
+
+Distributions do change with `gender`. But hard to say outright from the overlapping histograms. *Densities* for `risk` look different for men and women, though. 
+
+
+```{r}
+#| label: panel-A-stat-test
+#| echo: true
+
+# Main Character Question
+
+mosaic::t.test(risk ~ gender, data = A_mod) |> broom::tidy()
+
+```
+
+### 6. Say
+
+~~Caption + one sentence we will stand behind.~~
+
+
+1. Women are literally at higher `risk` than men for post-procedure pancreatitis, no cap. It’s giving sad energy. 
+2. Difference in mean `risk` between them is $0.3014706$, statistically significant (p-value < 0.05).
+
+### 7. Limit
+
+~~What this panel cannot do.~~
+
+We’re assuming the community here is not specifically linked with pancreatitis. Would this `risk` be similar in other communities? (Lowkey assuming this community isn’t pancreatitis-coded. Would the risk vibe be similar in other communities, no cap?)
+
+# Panel B — category / talk
+
+*rx × outcome is the trial mosaic. site × outcome. Do not average rx.*
+
+
+### 1. See the table
+
+~~What is a case? Which columns are Quant / Qual? What is missing?~~
+
+```{r}
+#| label: inspect-panel-B-data-1
+#| 
+# glimpse() / inspect() / skim()
+dplyr::glimpse(B)
+```
+My Panel-B data has:
+
+- 602 observations and 5 variables.
+- `rx`: Qualitative, categorical. Encoded <chr>, to be mutated
+- `outcome`: Qualitative, categorical. Encoded <chr>, to be mutated
+- `pep`: Qualitative, categorical. Encoded <chr>, to be mutated
+- `status`: Qualitative, categorical. Encoded <chr>, to be mutated
+- `type`: Qualitative, categorical. Encoded <chr>, to be mutated
+- `site`: Qualitative, categorical. Encoded <chr>, to be mutated
+
+```{r}
+#| label: inspect-panel-B-data-2
+#| 
+# glimpse() / inspect() / skim()
+skimr::skim(B)
+```
+
+Further, on the Qual variables panel-B data has : 
+
+- `gender` has 2 levels: "male" and "female"
+- `rx` has 2 levels: "indomethacin" and "placebo"
+- `outcome` has 2 levels: "no" and "yes"
+- `pep` has 2 levels: "no" and "yes"
+- `status` has 2 levels: "outpatient" and "inpatient"
+- `type` has 4 levels: to be listed
+- `site` has 4 levels: to be listed
+
+And on the Quant variables panel-A data has : None. All variable are Qualitative only. 
+
+There is no missing data.
+
+```{r}
+#| label: mutate-B-factors
+
+B_mod <- B |> 
+  mutate(across(where(is.character), as.factor)) # Whoa!!
+
+glimpse(B_mod)
+
+```
+
+Now, we're ready.
+
+### 2. Ask
+
+~~One question *this* table can answer. One it cannot. Write both.~~
+
+Looking at the spine statement again, I can pose the following Questions:
+
+Possibly can answer:
+
+1. Are the dataset balanced by all Qual variables, except the measured one (`output`) ?
+1. Are there differences in *how the medication was administered* ( i.e.`rx`)  across `gender`, `pep`, `site` or `type` of patient? ( Just curious. Does this matter? Need to ask the expert who did this research.)
+1. Does the medication work? (Main Character Question)
+1. Does it work differently for men and for women? ( Possible Main Character Question)
+
+Possibly cannot answer:
+
+1. Does the medication efficacy depend upon dosage? ( No `dosage` variable.)
+
+### 3. Choose a mark
+
+1. Bar Chart
+1. Bar Chart with fill or facet
+1. Mosaic Chart (NEW!!)
+1.  Mosaic Chart again??
+
+### 4. Predict
+
+~~What do we think we will see? One sentence, before Run.~~
+
+A well-balanced RCT experiment, balanced across all `factors` such as `gender`, `pep`, `site`, and `type`. 
+
+I think the medicine might show as working in this experiment. 
+
+### 5. Make
+
+~~Human brick first. Optional: one AI prompt, pasted below, only for what section 3 named.~~
+
+These first few charts are what I want to check out. I will not have these charts in the final rendered Quarto, but comment on findings. 
+
+If any is surprising, it stays. 
+
+```{r}
+#| label: panel-B-charts-I-want-to-see-but-not-show-1
+#| eval: false
+#| echo: true # Include the code, but don't compute in render
+
+## Question 1
+B_mod |> gf_bar(~ gender)
+B_mod |> gf_bar(~ rx)
+B_mod |> gf_bar(~ pep)
+B_mod |> gf_bar(~ status)
+B_mod |> gf_bar(~ type)
+B_mod |> gf_bar(~ site)
+
+```
+- `gender`: More women than men
+- ` rx`: Medication and placebo prescribed to equal numbers. Fair. 
+- All other factors have imbalanced counts. It is what it is. 
+```{r}
+#| label: panel-B-charts-I-want-to-see-but-not-show-2
+#| eval: false
+#| echo: true # Include the code, but don't compute in render
+
+## Question 2
+B_mod |> gf_bar(~ gender, fill = ~ rx)
+B_mod |> gf_bar(~ pep, fill = ~ rx)
+B_mod |> gf_bar(~ status, fill = ~ rx)
+B_mod |> gf_bar(~ type, fill = ~ rx)
+B_mod |> gf_bar(~ site, fill = ~ rx)
+
+```
+All kinds of people, based on ***each of the factors*** are EQUALLY divided between `indomethacin` and `placebo`. Superb experiment design!! Waah, waah!!
+
+NOTE: this can be visually confirmed by using `gf_props` for all code lines in the preceding chunk. 
+
+
+```{r}
+#| label: main-character-question-B
+#| echo: true
+
+# Question #3
+# library(vcd) # Put this in the setup chunk above!
+# 
+B_table <- vcd::structable(outcome ~ rx, data = B_mod)
+B_table
+# Main Character Question
+vcd::mosaic(B_table, shade = TRUE, main = "Mosaic Chart for Indomethacin RCT")
+```
+
+
+### 6. Say
+
+~~Caption + one sentence we will stand behind.~~
+
+The mosaic plot’s saying there’s a significant diff between `indomethacin` and `placebo` performance. But plot twist: the diff is wrong-sided: placebo’s actually slaying. Main character `indomethacin` is kinda flopping compared to placebo. Low-key mid, high-key not it. We need a new main. 
+
+### 7. Limit
+
+~~What this panel cannot do.~~
+
+I cannot say whether this trial would show similar results if conducted in another community. I presume the experimenters thought of this beforehand. 
+
+
+# Panel C — place
+
+*Americas-only lifeExp / gdpPercap / pop. Same join brick as other map panels.*
+
+```r
+# library(sf)
+# library(rnaturalearth)
+# world <- ne_countries(scale = "medium", returnclass = "sf")
+```
+
+
+### 1. See the table
+
+What is a case? Which columns are Quant / Qual? What is missing?
+
+```r
+# glimpse() / inspect() / skim()
+```
+
+### 2. Ask
+
+One question *this* table can answer. One it cannot. Write both.
+
+### 3. Choose a mark
+
+Geom, map mark, or (later) test that matches the pair type. Name it before you code.
+
+### 4. Predict
+
+What do we think we will see? One sentence, before Run.
+
+### 5. Make
+
+Human brick first. Optional: one AI prompt, pasted below, only for what section 3 named.
+
+```r
+# human chunk
+```
+
+### 6. Say
+
+Caption + one sentence we will stand behind.
+
+### 7. Limit
+
+What this panel cannot do.
+
+
+
+# Conclusion
+
+- The question we will defend in ninety seconds
+- What we will **not** claim
+- Which lines were human, which were machine
+- Limits
+- Gift for the steal-this strip

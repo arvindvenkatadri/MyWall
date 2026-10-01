@@ -1,0 +1,373 @@
+---
+title: "Group 2 — Risk factors"
+subtitle: "Studio wall"
+author: "Group names here"
+format:
+  html:
+    toc: true
+    toc-depth: 2
+---
+
+# Spine
+
+> How do bodies carry risk, how do class and smoke talk, and where do children still die young?
+
+This sentence stays at the top. Every panel must attach to it. If a plot cannot be introduced in a clause that hangs off this line, it is off the wall.
+
+# Introduction — the tables we own
+
+This folder is ours for the ten days. Three tables, three shapes.
+
+- **Panel A** (`panel-A.csv`) — `cardioRiskFactors`: BMI, lipids, blood pressure, uric acid. `sex` and `smok` have already been recoded from integers to factors.
+- **Panel B** (`panel-B.csv`) — Scottish Health Survey 1998: sex, social class, smoking, diagnosed CVD. `area` is a code, not a map.
+- **Panel C** (`panel-C.csv`) — SOWC child / infant / neonatal mortality by country. Join by country name.
+
+If a brick needs a histogram, it lives in A. If it needs a mosaic, it lives in B.
+
+We load from this folder:
+
+```{r}
+#| label: setup
+#| message: false # keeps rendered Quarto less noisy
+#| 
+library(tidyverse)
+library(mosaic)
+library(skimr)
+library(ggformula)
+##
+library(vcd) # for Panel B
+
+
+A <- read_csv("../../../data/group-2-risk-factors/panel-A.csv")
+B <- read_csv("../../../data/group-2-risk-factors/panel-B.csv")
+C <- read_csv("../../../data/group-2-risk-factors/panel-C.csv")
+```
+
+~Found tables train the mark. A campus Free Hunch, if we collect one, is a **made** panel of the same pair type — new people, old grammar. It does not replace A, B, or C.~
+
+# Panel A — body / measure
+
+*bmi, choles, sys, dia, Uric are Quant. Do not average `smok`.*
+
+
+### 1. See the table
+
+What is a case? Which columns are Quant / Qual? What is missing?
+
+```{r}
+#| label: inspect-panel-A-data-1
+#| 
+# glimpse() / inspect() / skim()
+dplyr::glimpse(A)
+```
+
+```{r}
+A_mod <- A |> mutate(
+  sex = as.factor(sex),
+  smok = as.factor(smok)) |> 
+  
+  select(sex, smok, everything()) # factors first
+
+glimpse(A_mod)
+```
+My Panel-A data has:
+
+  - 998 observations and 11 variables
+  - `smok`, `sex` are Qual variables
+  - `bmi`, `waisthip`, `choles`, `ldl`, `hdl`, `sys`, `dia`, `Uric`, `alco`, and `apoa` are Quant variables
+  
+### 2. Ask
+
+~~One question *this* table can answer. One it cannot. Write both.~~
+
+Looking at the spine statement, I can pose the following Questions:
+
+Possibly can answer: 
+
+1. Are the dataset balanced by `sex` and by `smok` ?
+1. What are the distributions for each of the Quant variables?
+1. How are they different based on the Qual variables? Is there any risk ( Quant variable) that is different based on `sex` or `smok`?
+
+Possibly cannot answer:
+
+1. There is no data on disease or other symptoms, so cannot plot that. 
+
+### 3. Choose a mark
+
+~Geom, map mark, or (later) test that matches the pair type. Name it before you code.~
+
+- Bar Charts
+- Histograms
+- Histograms with fill
+- Boxplots for variety
+
+### 4. Predict
+
+What do we think we will see? One sentence, before Run.
+
+### 5. Make
+
+Human brick first. Optional: one AI prompt, pasted below, only for what section 3 named.
+
+```{r}
+#| label: panelA-charts-I-want-to-see-but-not-show-1
+#| eval: false
+#| echo: true # Include the code, but don't compute in render
+
+## Question 1
+A_mod |> gf_histogram(~ bmi)
+A_mod |> gf_histogram(~ waisthip)
+A_mod |> gf_histogram(~ choles)
+A_mod |> gf_histogram(~ ldl)
+A_mod |> gf_histogram(~ hdl)
+A_mod |> gf_histogram(~ sys)
+A_mod |> gf_histogram(~ dia)
+A_mod |> gf_histogram(~ Uric)
+A_mod |> gf_histogram(~ alco)
+A_mod |> gf_histogram(~ apoa)
+
+## Question 2
+A_mod |> gf_histogram(~ choles, fill = ~ sex)
+A_mod |> gf_histogram(~ choles, fill = ~ smok)
+A_mod |> gf_histogram(~ ldl, fill = ~ sex)
+A_mod |> gf_histogram(~ ldl, fill = ~ smok)
+A_mod |> gf_histogram(~ hdl, fill = ~ sex)
+A_mod |> gf_histogram(~ hdl, fill = ~ smok)
+A_mod |> gf_histogram(~ sys, fill = ~ sex)
+A_mod |> gf_histogram(~ sys, fill = ~ smok)
+A_mod |> gf_histogram(~ dia, fill = ~ sex)
+A_mod |> gf_histogram(~ dia, fill = ~ smok)
+A_mod |> gf_histogram(~ alco, fill = ~ sex)
+A_mod |> gf_histogram(~ alco, fill = ~ smok)
+A_mod |> gf_histogram(~ apoa, fill = ~ sex)
+A_mod |> gf_histogram(~ apoa, fill = ~ smok)
+## Just for variety
+A_mod |> gf_boxplot(sex ~ apoa, fill = ~ sex)
+A_mod |> gf_boxplot(smok ~ apoa, fill = ~ smok)
+
+```
+
+```{r}
+A_mod |> gf_histogram(~ Uric, fill = ~ sex)
+A_mod |> gf_histogram(~ Uric, fill = ~ smok)
+```
+
+### 6. Say
+
+`Uric` acid distributions look wild! There is so much right-skew to that distribution; the max value is near 2000! Someone suffers from a serious case of gout!
+
+
+### 7. Limit
+
+~What this panel cannot do. Which kit table we refused to abuse.~
+
+Can only speak of general conditions and their risks. Cannot actually say that the risk has manifested!
+
+
+# Panel B — category / talk
+
+*smoke × sex, cvd × sc (social class). `area` is forbidden as geography.*
+
+
+### 1. See the table
+
+What is a case? Which columns are Quant / Qual? What is missing?
+
+```{r}
+#| label: inspect-panel-B-data-1
+#| 
+# glimpse() / inspect() / skim()
+dplyr::glimpse(B)
+```
+
+```{r}
+B_mod <- B |> 
+  mutate(across(where(is.character), as_factor)) |> 
+  select(sex, cvd, smoke, everything()) # factors first
+
+glimpse(B_mod)
+B |> count(smoke) # What are the levels?
+```
+
+My Panel-B data has:
+
+- 8804 observations with 7 variables
+- `sex`, `cvd`, `smoke` are Qual variables
+-  `age` is Quant variable ( Age in years)
+- `sc` is social class, encoded as Quant
+- `carstair` is Quant variable, meaning not clear, perhaps related to exercise
+
+```{r}
+#| label: inspect-panel-B-data
+
+skimr::skim(B_mod)
+
+```
+Further, on the Qual variables panel-B data has : 
+
+- `sex` has 2 levels: "mal" and "fem"
+- `cvd` has 2 levels: "no" and "yes"
+- `smoke` has 3 levels: "nev", "lite", "mod", "hvy", "ex". Need to make this into an ordered factor!
+
+And on the Quant variables panel-B data has :
+
+- `age` has a mean of 45.26, sd of 13.2, median of 45, min of 19, and max of 90
+- `sc` has a mean of 18.34, sd of 18.092, median of 12, min of 3, and max of 45
+- `carstair` has a mean of -0.20, sd of 3.26, median of -0.68, min of -6.23, and max of 12.53
+- `area` has a mean of 162, sd of 91, median of 165, min of 1, and max of 312. 
+
+There is no missing data. All histograms look uniform!!
+
+```{r}
+B_mod <- B_mod |> 
+  mutate(smoke = base::factor(smoke, 
+                              levels = c("nevr", "lite", "mod", "hvy", "ex"), 
+                              ordered = TRUE))
+glimpse(B_mod)
+```
+
+
+### 2. Ask
+
+~~One question *this* table can answer. One it cannot. Write both.~~
+Looking at the spine statement, I can pose the following Questions:
+
+Possibly can answer: 
+
+1. Are the dataset balanced by `sex`, `cvd`, and `smoke`? 
+1. Are `cvd` and `smoke` associated? (Main Character Question)
+1. Are `cvd` and `sc` associated ? ( Also Main Character Question)
+
+Possibly cannot answer:
+
+1. Whether `smoke`-ing CAUSES `cvd`? Why not??
+
+### 3. Choose a mark
+
+~~Geom, map mark, or (later) test that matches the pair type. Name it before you code.~~
+
+1. Bar charts
+2. Mosaic Charts(NEW!)
+
+### 4. Predict
+
+~What do we think we will see? One sentence, before Run.~
+I expect to see `cvd` worsen with `smoke`ing. `sc` may be curiously associated with `cvd` but may be confounded by `smoke`ing.
+
+
+### 5. Make
+
+~~Human brick first. Optional: one AI prompt, pasted below, only for what section 3 named.~~
+
+```{r}
+#| label: panelB-charts-I-want-to-see-but-not-show-1
+#| eval: false
+#| echo: true # Include the code, but don't compute in render
+
+## Question 1
+B_mod |> gf_bar(~ cvd)
+B_mod |> gf_bar(~ sc)
+B_mod |> gf_bar(~ sex)
+```
+
+`sc` is not really balanced at all, nor is `sex`.
+
+`cvd` is not balanced, but it is an output variable. 
+
+```{r}
+#| label: main-character-question-B
+#| echo: true
+
+# Question #2
+sccvd_table <- vcd::structable(sc ~ cvd, data = B_mod)
+sccvd_table
+smokecvd_tab <- vcd::structable(smoke ~ cvd, data = B_mod)
+smokecvd_tab
+
+##
+vcd::mosaic(sccvd_table, shade = TRUE, legend = TRUE, main = "Mosaic of social class vs CVD", sub = "Actual")
+vcd::mosaic(sccvd_table, shade = TRUE, legend = TRUE, main = "Mosaic of social class vs CVD", sub = "Expected", type = "expected")
+vcd::mosaic(smokecvd_tab, shade = TRUE, legend = TRUE, main = "Mosaic of smoking vs CVD", sub = "Actual")
+vcd::mosaic(smokecvd_tab, shade = TRUE, legend = TRUE, main = "Mosaic of smoking vs CVD", sub = "Expected", type = "expected")
+```
+
+### 6. Say
+
+~~Caption + one sentence we will stand behind. Title is a sentence, not a column name.~~
+
+Smoking and Cardio-Vascular Disease are definitely associated, with a p-value of <2.22e-16!!
+
+### 7. Limit
+
+~~What this panel cannot do. Which kit table we refused to abuse.~~
+
+Can't PROVE that smoking causes cancer, since this is not an RCT Table!!
+
+# Panel C — place
+
+*under5_mortality_2018 and infant_mortality_2018 are rates. Join on `country`.*
+
+Geometry is not in the CSV. Join in R, then use the same seven headings.
+
+```r
+# library(sf)
+# library(rnaturalearth)
+# world <- ne_countries(scale = "medium", returnclass = "sf")
+# # join on country name; list the unmatched labels
+```
+
+
+### 1. See the table
+
+What is a case? Which columns are Quant / Qual? What is missing?
+
+```r
+# glimpse() / inspect() / skim()
+```
+
+### 2. Ask
+
+One question *this* table can answer. One it cannot. Write both.
+
+### 3. Choose a mark
+
+Geom, map mark, or (later) test that matches the pair type. Name it before you code.
+
+### 4. Predict
+
+What do we think we will see? One sentence, before Run.
+
+### 5. Make
+
+Human brick first. Optional: one AI prompt, pasted below, only for what section 3 named.
+
+```r
+# human chunk
+
+# ## Prompt we actually used
+# ai_draft
+# ours
+```
+
+### 6. Say
+
+Caption + one sentence we will stand behind. Title is a sentence, not a column name.
+
+### 7. Limit
+
+What this panel cannot do. Which kit table we refused to abuse.
+
+
+# Conclusion
+
+What the spine looks like after three panels.
+
+- The question we will defend in ninety seconds
+- What we will **not** claim
+- Which lines were human, which were machine
+- Limits: sample, missingness, the test we did not run
+- Gift for the steal-this strip (palette, annotation, join trick)
+
+```r
+# sessionInfo()
+```

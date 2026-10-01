@@ -1,0 +1,22 @@
+---
+title: "FOSEDA 2026"
+image: Enola-Holmes-2-new.jpg
+about:
+  template: jolla
+  # links:
+  #   - icon: twitter
+  #     text: Twitter
+  #     href: https://twitter.com/arvind_v
+  #   - icon: linkedin
+  #     text: LinkedIn
+  #     href: https://linkedin.com/in/arvindvenkatadri
+  #   - icon: github
+  #     text: Github
+  #     href: https://github.com/arvindvenkatadri/GrandNewBlog
+
+---
+
+This is a set of projects carried out by my students in the Fundamentals of Exploratory Data Analysis and Statistics, at the Srishti Manipal Institute of Art, Design, and Technology, Bangalore, during the term September to October 2026. 
+
+Each project includes a brief description, the dataset used, and the analysis performed by the students.
+

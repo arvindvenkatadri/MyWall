@@ -1,0 +1,71 @@
+project:
+  type: website
+
+execute: 
+  freeze: auto
+  echo: true
+  warning: true
+  
+website:
+  title: "The Mad Hatter's DataVis Workshop"
+  page-navigation: true
+  back-to-top-navigation: true
+  bread-crumbs: true
+  navbar:
+    background: gray-400
+    right:
+      - icon: github
+        href: https://github.com/arvindvenkatadri/GrandNewBlog
+      - icon: twitter
+        href: https://twitter.com/arvind_v
+      - icon: linkedin
+        href: https://www.linkedin.com/arvindvenkatadri
+        
+  sidebar:
+    style: "docked"
+    background: "#FCEFD3"
+    alignment: left
+    collapse-level: 2
+    search: true
+    contents: 
+      - section: "Data Kits and Walls"
+        contents:
+          # - analyses/Modules/Datakit1/studio-wall.qmd
+          # - analyses/Modules/Datakit2/studio-wall.qmd
+          # - analyses/Modules/Datakit3/studio-wall.qmd
+          # - analyses/Modules/Datakit4/studio-wall.qmd
+          # - analyses/Modules/Datakit5/studio-wall.qmd
+          # - analyses/Modules/Datakit6/studio-wall.qmd
+          - analyses/Modules/Datakit7/studio-wall.qmd
+  
+format:
+  html:
+    theme: cosmo
+    css: 
+      - gfonts/css/styles.css
+      - gfonts/css/roboto-condensed.css
+      - gfonts/css/vollkorn.css
+      - gfonts/css/alegreya.css
+      - gfonts/css/fraunces.css
+      - gfonts/css/montserrat.css
+    backgroundcolor: "#FCEFD3"
+    mainfont: Roboto Condensed
+    monofont: Fira Code
+    code-block-border-left: "black"
+    code-block-bg: "#E7FBFE"
+    code-link: TRUE
+    df-print: paged
+    fig-align: center
+    fig-cap-location: bottom
+    fig-asp: 0.618
+    fig-dpi: 300
+    lightbox: TRUE
+
+    # filters:
+    #   - d2
+    # d2:
+    #   format: svg
+    #   embed_mode: raw
+
+editor: source
+

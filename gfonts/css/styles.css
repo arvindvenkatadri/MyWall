@@ -1,0 +1,63 @@
+/*-- scss:rules --*/
+
+
+/*-- scss:defaults --*/
+
+code a:any-link {
+    font-family: Roboto Condensed; 
+    color: #0253a2;
+    font-weight: bold;
+    text-decoration: underline;
+    text-decoration-color: #6c757d;
+    font-style: inherit;
+}
+
+h1.title {
+    font-family: Vollkorn;
+    color: #204a87
+}
+
+h1 {
+    font-family: Vollkorn;
+    color: #204a87
+}
+
+h2 {
+    font-family: Vollkorn;
+    color: #204a87
+}
+
+h2.anchored {
+    font-family: Vollkorn;
+    color: #204a87
+}
+
+h3 {
+  font-family: Vollkorn;
+  color: #204a87
+}
+
+h3.anchored {
+  font-family: Vollkorn;
+  color: #204a87
+}
+
+h4 {
+  font-family: Vollkorn;
+  color: #204a87
+}
+
+h4.anchored {
+  font-family: Vollkorn;
+  color: #204a87
+}
+
+h6 {
+  font-family: Vollkorn;
+  color: #204a87
+}
+
+h6.anchored {
+  font-family: Vollkorn;
+  color: #204a87
+  
