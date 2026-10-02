@@ -36,6 +36,8 @@ library(ggformula)
 ##
 library(vcd) # (NEW!!) for Panel B
 library(broom) # (NEW!!) for clean stat outputs
+library(sf) # for Panel-C
+library(rnaturalearth) # for Panel-C
 
 
 A <- read_csv("../../../data/group-7-ercp-and-americas/panel-A.csv")
@@ -389,38 +391,213 @@ I cannot say whether this trial would show similar results if conducted in anoth
 
 What is a case? Which columns are Quant / Qual? What is missing?
 
-```r
+```{r}
+#| label: inspect-panel-C-data-1
+#| 
 # glimpse() / inspect() / skim()
+dplyr::glimpse(C)
 ```
+My Panel-C data has:
+
+- 25 rows and 6 columns.
+- `country`: Qualitative, categorical. Encoded <chr>, to be mutated
+- `continent`: Qualitative, categorical. Encoded <chr>, to be mutated
+- `year`: Quantitative, numeric. Looks like it is just 2007 right through and data is for one year only. 
+- `lifeExp`: Quantitative, numeric
+- `pop`: Quantitative, numeric
+- `gdpPercap`: Quantitative, numeric
+
+Let us `join` this data with map geometries from `rnaturalearth`, so that we can make a map to show off the status in 2007. 
+
+```{r}
+#| label: get-map-data
+#| 
+# library(sf) ( Add this into setup chunk above!)
+# library(rnaturalearth)
+world <- rnaturalearth::ne_countries(scale = "medium", returnclass = "sf")
+glimpse(world)
+
+```
+
+`world` is an `sf` data frame, with a MULTIPOLYGON `geometry` column, which we need. It has 177 rows and 64 columns. 
+
+The `name` column has the name of the country, which is what we will use to `join` with our Panel-C data.
+
+Let us select just the `name` and `geometry` columns first, and then join with panel-C data. In passing, we will also mutate `country` and `continent` into factors.
+
+NOTE: this method fails for the USA, since panel-C describes that country as "United States" and world as "United States of America". We will make the change in Panel-C, before joining:
+
+```{r}
+#| label: join-data
+
+world_selected <- world |> dplyr::select(name, geometry)
+C_mod <- C |>
+  ###
+  mutate(country = str_replace(
+    string = country,
+    pattern = "United States",
+    replacement = "United States of America"
+  )) |>
+  ###
+  left_join(world_selected, by = c("country" = "name")) |>
+  ###
+  mutate(
+    country = as_factor(country),
+    continent = as_factor(continent)
+  ) |>
+  ###
+  st_as_sf() # Convert to sf object, just to be careful
+glimpse(C_mod)
+```
+```{r}
+#| label: inspect-panel-C-data-2
+
+skimr::skim(C_mod)
+```
+
+Finally, after joining, on the Qual variables panel-C data has :
+
+- `country`: Qualitative, categorical. Encoded <fct> with 25 levels: "Argentina", "Bolivia", "Brazil", "Canada", "Chile", "Colombia", "Costa Rica", "Cuba", "Dominican Republic", "Ecuador", "El Salvador", "French Guiana", "Guatemala", "Guyana", "Haiti", "Honduras", "Jamaica", "Mexico", "Nicaragua", "Panama", "Paraguay", "Peru", "Suriname", "Trinidad and Tobago", and "United States".
+- `continent`: Qualitative, categorical. Encoded <fct> with 1 level: "Americas"
+
+And the Quant variables are: 
+
+- `year`: Quantitative, numeric. Encoded <dbl> with 1 level: 2007
+- `lifeExp`: Quantitative, numeric. Mean: $7.360812e+01$, sd: $4.440948e+00$, min: $60.916$	, median: $72.899$, max:  $80.65$
+- `pop`: Quantitative, numeric.Mean: $3.595485e+07$, sd: $6.883378e+07$, min: $1056608.000$	, median: $9319622.000$, max:  $3.011399e+08$
+- `gdpPercap`: Quantitative, numeric. Mean: $1.100303e+04$, sd: $9.713209e+03$, min: $1201.637$	, median: $8948.103$, max:  $4.295165e+04$
+
+There is no missing data. Histograms shown in `skim()` output are extremely right-skewed for `pop` and `gdpPercap`!! 
 
 ### 2. Ask
 
-One question *this* table can answer. One it cannot. Write both.
+~~One question *this* table can answer. One it cannot. Write both.~~
+
+Based on the Spine, I can pose the following Questions:
+
+Possibly can answer:
+
+1. How are the Quant variables distributed?
+1. Are `gdpPercap` and`lifeExp` correlated across the Americas? (Main Character Question)
+2. How do the quantities `gdpPercap`, `lifeExp`, and `pop` vary across the Americas? (Also Main Character Question)
+
+Possibly cannot answer:
+
+1. Does global trade / wars affect longevity? ( No data)
+2. Do the quant variables vary over time? ( Data is only for 2007)
 
 ### 3. Choose a mark
 
-Geom, map mark, or (later) test that matches the pair type. Name it before you code.
+~~Geom, map mark, or (later) test that matches the pair type. Name it before you code.~~
+
+1. Scatter Plot + Correlation Test (NEW!!)
+2. Maps ( NEW!!)
 
 ### 4. Predict
 
-What do we think we will see? One sentence, before Run.
+~~What do we think we will see? One sentence, before Run.~~
+
+1. I think `lifeExp` is correlated positively with `gdpPercap. 
+2. The map will show stark variation in each of the quantities across the Americas, since there are poor-er countries there like say in Latin America, and then there are US and Canada. 
 
 ### 5. Make
 
-Human brick first. Optional: one AI prompt, pasted below, only for what section 3 named.
+~Human brick first. Optional: one AI prompt, pasted below, only for what section 3 named.~
 
-```r
-# human chunk
+```{r}
+#| label: panel-C-charts-I-want-to-see-but-not-show-1
+#| eval: false
+#| echo: true # Include the code, but don't compute in render
+C_mod |> gf_histogram(~ lifeExp)
+C_mod |> gf_histogram(~ pop)
+C_mod |> gf_histogram(~ gdpPercap)
+
+
 ```
+
+As expected(?) `lifeExp` is skewed left, and `pop` and `gdpPercap` are skewed right!!
+
+```{r}
+#| label: main-character-question-C-1
+#| echo: true
+
+# Question #2
+C_mod |> gf_point(lifeExp ~ gdpPercap) |> 
+  gf_smooth(method = "lm")
+
+mosaic::cor.test(lifeExp ~ gdpPercap, 
+                 data = C_mod) |> 
+  broom::tidy()
+```
+
+```{r}
+#| label: main-character-question-C-2
+#| echo: true
+
+# Question #3
+
+C_mod |> gf_sf(geometry = ~ geometry, fill = ~ gdpPercap) |>
+  gf_refine(
+    coord_sf(
+      xlim = c(-170, -30),  # longitude: 170°W to 30°W
+      ylim = c(-60, 85),    # latitude: South to North America
+      expand = FALSE
+    )
+  )
+C_mod |> gf_sf(geometry = ~ geometry, fill = ~ lifeExp) |>
+  gf_refine(
+    coord_sf(
+      xlim = c(-170, -30),  # longitude: 170°W to 30°W
+      ylim = c(-60, 85),    # latitude: South to North America
+      expand = FALSE
+    )
+  )
+C_mod |> gf_sf(geometry = ~ geometry, fill = ~ pop) |>
+  gf_refine(
+    coord_sf(
+      xlim = c(-170, -30),  # longitude: 170°W to 30°W
+      ylim = c(-60, 85),    # latitude: South to North America
+      expand = FALSE
+    )
+  )
+```
+
+
 
 ### 6. Say
 
-Caption + one sentence we will stand behind.
+~~Caption + one sentence we will stand behind.~~
+
+Across the Americas, based on 2007 data from `gapminder`, `lifeExp`ectancy and `gdpPercap` are positively correlated (correlation coefficient = 0.59, p-value < 0.05).
+
+The correlation would perhaps even be higher, if we left out a few high `gddperCap` countries since these are clearly outliers with a huge amount of `leverage`. ( Which countries are these?)
+
+```{r}
+C_mod_2 <- C_mod |> 
+  filter(!gdpPercap >= 15000)
+C_mod_2
+C_mod_2 |> gf_point(lifeExp ~ gdpPercap) |> gf_smooth(method = "lm")
+
+mosaic::cor.test(lifeExp ~ gdpPercap, 
+                 data = C_mod_2) |> 
+  broom::tidy()
+```
+
+
+The maps show the disparity in all the three quant variables across the Americas. Interestingly, the USA and Brazil turn out to have the highest populations, while Canada and other South American coutries are lower on the `pop` scale. 
 
 ### 7. Limit
 
-What this panel cannot do.
+~~What this panel cannot do.~~
 
+Speak of trade or of aid!
+Nor speak of Asia.
+Nor of variations over TIME!
+
+
+# Panel D — Found Data
+
+????
 
 
 # Conclusion
