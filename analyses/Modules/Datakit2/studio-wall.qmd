@@ -36,7 +36,8 @@ library(skimr)
 library(ggformula)
 ##
 library(vcd) # for Panel B
-
+library(sf)
+library(rnaturalearth)
 
 A <- read_csv("../../../data/group-2-risk-factors/panel-A.csv")
 B <- read_csv("../../../data/group-2-risk-factors/panel-B.csv")
@@ -309,25 +310,51 @@ Can't PROVE that smoking causes cancer, since this is not an RCT Table!!
 
 Geometry is not in the CSV. Join in R, then use the same seven headings.
 
-```r
-# library(sf)
-# library(rnaturalearth)
-# world <- ne_countries(scale = "medium", returnclass = "sf")
+```{r}
+world <- ne_countries(scale = "medium", returnclass = "sf")
 # # join on country name; list the unmatched labels
 ```
 
+
+```{r}
+#| label: join-data
+
+world_selected <- world |> dplyr::select(admin, name, geometry)
+C_mod <- C |>
+  ###
+  mutate(country = str_replace(
+    string = country,
+    pattern = "United States",
+    replacement = "United States of America"
+  )) |>
+  ###
+  left_join(world_selected, by = c("country" = "name")) |>
+  ###
+  mutate(
+    country = as_factor(country)
+  ) |>
+  ###
+  st_as_sf() # Convert to sf object, just to be careful
+glimpse(C_mod)
+```
 
 ### 1. See the table
 
 What is a case? Which columns are Quant / Qual? What is missing?
 
-```r
+```{r}
 # glimpse() / inspect() / skim()
+C_mod |> select(country, geometry) |> dplyr::filter(!is.na("geometry"))
 ```
 
 ### 2. Ask
 
 One question *this* table can answer. One it cannot. Write both.
+
+```{r}
+C_mod |> gf_sf(geometry = ~ geometry)
+```
+
 
 ### 3. Choose a mark
 

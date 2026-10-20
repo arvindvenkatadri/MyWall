@@ -24,21 +24,29 @@ This folder is ours for the twelve days. Three tables, three shapes.
 
 ~~A does not grow a mosaic. B does not grow a honest histogram of chest pain. C is a rate, not a headcount.~~
 
+{{< include ../../../_setup.qmd >}}
 We load from this folder:
 
 ```{r}
 #| label: setup
 #| message: false
-#| 
+
 library(tidyverse)
 library(ggformula)
 library(mosaic)
 library(skimr)
+library(sf)
+library(rnaturalearth)
+library(tmap)
+library(leaflet)
 
 A <- read_csv("../../../data/group-1-clinic-bodies/panel-A.csv")
 B <- read_csv("../../../data/group-1-clinic-bodies/panel-B.csv")
 C <- read_csv("../../../data/group-1-clinic-bodies/panel-C.csv")
+
 ```
+
+
 
 ~~Found tables train the mark. A campus Free Hunch, if we collect one, is a **made** panel of the same pair type — new people, old grammar. It does not replace A, B, or C.~~
 
@@ -154,11 +162,28 @@ What this panel cannot do. Which kit table we refused to abuse.
 
 Geometry is not in the CSV. Join in R, then use the same seven headings.
 
-```r
-# library(sf)
-# library(rnaturalearth)
-# world <- ne_countries(scale = "medium", returnclass = "sf")
-# # join on country name; list the unmatched labels
+```{r}
+#| label: join-data
+#| eval: false
+#| 
+
+world_selected <- world |> dplyr::select(name, geometry)
+C_mod <- C |>
+  ###
+  mutate(country = str_replace(
+    string = country,
+    pattern = "United States",
+    replacement = "United States of America"
+  )) |>
+  ###
+  left_join(world_selected, by = c("country" = "name")) |>
+  ###
+  mutate(
+    country = as_factor(country)
+  ) |>
+  ###
+  st_as_sf() # Convert to sf object, just to be careful
+glimpse(C_mod)
 ```
 
 
@@ -166,8 +191,15 @@ Geometry is not in the CSV. Join in R, then use the same seven headings.
 
 What is a case? Which columns are Quant / Qual? What is missing?
 
-```r
+```{r}
+#| eval: false
+#| 
 # glimpse() / inspect() / skim()
+glimpse(C_mod) 
+C_mod |> select(country, inf_mort_rate, geometry) |>
+  #dplyr::filter(is.na("geometry")) |> 
+  gf_sf(geometry = ~ geometry)
+
 ```
 
 ### 2. Ask
@@ -186,12 +218,20 @@ What do we think we will see? One sentence, before Run.
 
 Human brick first. Optional: one AI prompt, pasted below, only for what section 3 named.
 
-```r
+```{r}
+#| eval: false
 # human chunk
 
 # ## Prompt we actually used
 # ai_draft
 # ours
+# 
+library(tmap)
+glimpse(C_mod)
+tm_shape(C_mod) + 
+  tm_polygons(fill = "inf_mort_rate")
+              
+              
 ```
 
 ### 6. Say

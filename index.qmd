@@ -20,3 +20,4 @@ This is a set of projects carried out by my students in the Fundamentals of Expl
 
 Each project includes a brief description, the dataset used, and the analysis performed by the students.
 
+TODAY:: Changes made in front of peasants for demo. 

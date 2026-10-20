@@ -25,6 +25,10 @@ This folder is ours for the ten days. Three tables, three shapes.
 
 This is an RCT. `rx` is assigned, not a lifestyle. Do not talk about it as if people chose the pill.
 
+{{< include ../../../_setup.qmd >}}
+
+
+
 ```{r}
 #| label: setup
 #| message: false # keeps rendered Quarto less noisy
@@ -157,10 +161,10 @@ If any chart is surprising, it stays.
 #| echo: true # Include the code, but don't compute in render
 
 ## Question 1
-A_mod |> gf_bar(~ gender)
+A_mod |> gf_bar(~ gender, title = "Gender Distribution")
 
 ## Question 2
-A_mod |> gf_bar(~ rx)
+A_mod |> gf_bar(~ rx, title = "Gender Boxplot Distribution")
 
 ```
 
@@ -180,10 +184,13 @@ A_mod |> gf_histogram(~ risk)
 
 ```{r}
 #| label: panel-A-Main-Character-question
+#| message: false
+#| warning: false
+#| echo: true
 ## Question #4 (Main Character)
 
-A_mod |> gf_histogram(~ risk, fill = ~ gender)
-A_mod |> gf_density(~ risk, fill = ~ gender)
+A_mod |> gf_histogram(~ risk, fill = ~ gender, title = "Females at Higher Risk than Males?", subtitle = "Overlapping Histograms")
+A_mod |> gf_density(~ risk, fill = ~ gender, title = "Females at Higher Risk than Males?", subtitle = "Overlapping Densities")
 
 ```
 
@@ -193,7 +200,8 @@ Distributions do change with `gender`. But hard to say outright from the overlap
 
 
 ```{r}
-#| label: panel-A-stat-test
+#| label: tbl-panel-A-stat-test
+#| tbl-cap: "Risk vs Gender: Females at Significantly Higher Risk"
 #| echo: true
 
 # Main Character Question
@@ -523,7 +531,7 @@ As expected(?) `lifeExp` is skewed left, and `pop` and `gdpPercap` are skewed ri
 
 # Question #2
 C_mod |> gf_point(lifeExp ~ gdpPercap) |> 
-  gf_smooth(method = "lm")
+  gf_smooth(method = "lm", title = "Higher GDP indicates higher Life Expectancy, but outliers exist", subtitle = "Should we try removing them? Later!!")
 
 mosaic::cor.test(lifeExp ~ gdpPercap, 
                  data = C_mod) |> 
@@ -536,7 +544,7 @@ mosaic::cor.test(lifeExp ~ gdpPercap,
 
 # Question #3
 
-C_mod |> gf_sf(geometry = ~ geometry, fill = ~ gdpPercap) |>
+C_mod |> gf_sf(geometry = ~ geometry, fill = ~ gdpPercap, title = "Which are the High GDPperCap Countries?", subtitle = "Everything south of Mexico....") |>
   gf_refine(
     coord_sf(
       xlim = c(-170, -30),  # longitude: 170°W to 30°W
@@ -544,7 +552,7 @@ C_mod |> gf_sf(geometry = ~ geometry, fill = ~ gdpPercap) |>
       expand = FALSE
     )
   )
-C_mod |> gf_sf(geometry = ~ geometry, fill = ~ lifeExp) |>
+C_mod |> gf_sf(geometry = ~ geometry, fill = ~ lifeExp, title = "Which are the High LifeExp Countries?", subtitle = "Is that Bolivia....and Latin America???", caption = "El Salvador has imnproved in recent times!! Not in this graph!") |>
   gf_refine(
     coord_sf(
       xlim = c(-170, -30),  # longitude: 170°W to 30°W
@@ -552,7 +560,7 @@ C_mod |> gf_sf(geometry = ~ geometry, fill = ~ lifeExp) |>
       expand = FALSE
     )
   )
-C_mod |> gf_sf(geometry = ~ geometry, fill = ~ pop) |>
+C_mod |> gf_sf(geometry = ~ geometry, fill = ~ pop, title = "Where do more people live?", subtitle = "West of the Andes is low population? Why?") |>
   gf_refine(
     coord_sf(
       xlim = c(-170, -30),  # longitude: 170°W to 30°W
@@ -576,7 +584,14 @@ The correlation would perhaps even be higher, if we left out a few high `gddperC
 C_mod_2 <- C_mod |> 
   filter(!gdpPercap >= 15000)
 C_mod_2
-C_mod_2 |> gf_point(lifeExp ~ gdpPercap) |> gf_smooth(method = "lm")
+C_mod_2 |> gf_point(lifeExp ~ gdpPercap) |> gf_smooth(method = "lm", title = "Higher GDP indicates higher Life Expectancy, but outliers exist", subtitle = "Excluding countries with gdpPercap >= 15000")
+
+```
+
+
+```{r}
+#| label: tbl-t-test-gapminder
+#| tbl-cap: "Life Expectancy Correlates with GDP per Capita"
 
 mosaic::cor.test(lifeExp ~ gdpPercap, 
                  data = C_mod_2) |> 
@@ -594,10 +609,28 @@ Speak of trade or of aid!
 Nor speak of Asia.
 Nor of variations over TIME!
 
+# Panel D - The Erin Brokovich Project
 
-# Panel D — Found Data
+### 1. See the table
+### 2. Ask
+### 3. Choose a mark
+### 4. Predict
+### 5. Make
+### 6. Say
+### 7. Limit
 
-????
+
+# Panel E — Found Data
+
+Where is my Free Hunch ???? But let us paste the sub-section titles here for reference:
+
+### 1. See the table
+### 2. Ask
+### 3. Choose a mark
+### 4. Predict
+### 5. Make
+### 6. Say
+### 7. Limit
 
 
 # Conclusion
